@@ -55,17 +55,23 @@
 			fixed4 frag(v2f i) : SV_Target
 			{
 
-				fixed4 col = tex2D(_MainTex, i.uv);
-			fixed4 subCol = tex2D(_SubTex, i.uv);
+			//	fixed4 col = tex2D(_MainTex, i.uv);
+			//fixed4 subCol = tex2D(_SubTex, i.uv);
+			//fixed4 finalCol;
+			//if (!subCol.r > 0 || !subCol.g > 0 || !subCol.b > 0)
+			//{
+			//	subCol.r = col.r;
+			//	subCol.g = col.g;
+			//	subCol.b = col.b;
+			//}
+			//finalCol = col*subCol;
+			//		return finalCol;
+
+			fixed4 col = tex2D(_MainTex, i.uv);
+			fixed4 subCol = 1-tex2D(_SubTex, i.uv);
 			fixed4 finalCol;
-			if (!subCol.r > 0 || !subCol.g > 0 || !subCol.b > 0)
-			{
-				subCol.r = col.r;
-				subCol.g = col.g;
-				subCol.b = col.b;
-			}
 			finalCol = col*subCol;
-					return finalCol;
+			return finalCol;
 			}
 			ENDCG
 		}
