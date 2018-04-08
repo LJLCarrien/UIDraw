@@ -4,7 +4,7 @@
 	{
 		_MainTex("Texture", 2D) = "white" {}
 		_SubTex("Texture", 2D) = "white" {}
-
+		_ReverseRange("",Range(-1,1))=1
 	}
 		SubShader
 	{
@@ -33,7 +33,7 @@
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			half4 _MainTex_TexelSize;
-
+		    fixed _ReverseRange;
 			sampler2D _SubTex;
 
 			v2f vert(appdata v)
@@ -55,7 +55,7 @@
 			fixed4 frag(v2f i) : SV_Target
 			{
 
-			//	fixed4 col = tex2D(_MainTex, i.uv);
+			//fixed4 col = tex2D(_MainTex, i.uv);
 			//fixed4 subCol = tex2D(_SubTex, i.uv);
 			//fixed4 finalCol;
 			//if (!subCol.r > 0 || !subCol.g > 0 || !subCol.b > 0)
@@ -68,7 +68,8 @@
 			//		return finalCol;
 
 			fixed4 col = tex2D(_MainTex, i.uv);
-			fixed4 subCol = 1-tex2D(_SubTex, i.uv);
+			fixed _ReverseFore=_ReverseRange*0.5+0.5;
+			fixed4 subCol = 1*_ReverseFore+(-1)*_ReverseRange*tex2D(_SubTex, i.uv);
 			fixed4 finalCol;
 			finalCol = col*subCol;
 			return finalCol;
