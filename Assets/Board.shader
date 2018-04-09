@@ -4,12 +4,10 @@
 	{
 		_MainTex("Texture", 2D) = "white" {}
 		_SubTex("Texture", 2D) = "white" {}
-		_ReverseRange("",Range(-1,1))=1
+		_ReverseRange("ReverseRange",Range(-1,1))=1
 	}
 		SubShader
 	{
-		Tags { "RenderType" = "Opaque" }
-
 		Pass
 		{
 			CGPROGRAM
@@ -41,14 +39,6 @@
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-
-				#if UNITY_UV_STARTS_AT_TOP
-				//	   if (_MainTex_TexelSize.y > 0)
-				//	   o.uv.y = 1 - o.uv.y;
-				//	   if (_MainTex_TexelSize.x > 0)
-				//		   o.uv.x = 1 - o.uv.x;
-				#endif
-
 				return o;
 			}
 
@@ -67,12 +57,18 @@
 			//finalCol = col*subCol;
 			//		return finalCol;
 
+			//fixed4 col = tex2D(_MainTex, i.uv);
+			//fixed _ReverseFore=_ReverseRange*0.5+0.5;
+			//fixed4 subCol = 1*_ReverseFore+(-1)*_ReverseRange*tex2D(_SubTex, i.uv);
+			//fixed4 finalCol;
+			//finalCol = col*subCol;
+			//return finalCol;
+			
 			fixed4 col = tex2D(_MainTex, i.uv);
-			fixed _ReverseFore=_ReverseRange*0.5+0.5;
-			fixed4 subCol = 1*_ReverseFore+(-1)*_ReverseRange*tex2D(_SubTex, i.uv);
-			fixed4 finalCol;
-			finalCol = col*subCol;
-			return finalCol;
+			fixed4 subCol=tex2D(_SubTex,i.uv);
+			fixed4 handelCol=abs(sign(subCol.a)-(1-subCol));
+			fixed4 finalCol=col*handelCol;
+			return handelCol;
 			}
 			ENDCG
 		}

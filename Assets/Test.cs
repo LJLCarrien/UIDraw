@@ -7,8 +7,8 @@ public class Test : MonoBehaviour
 
     public Material lineMaterial;
     private int maxPoints = 1000;
-    private float lineWidth = 7.0f;
-    private int minPixelMove = 5; // Must move at least this many pixels per sample for a new segment to be recorded
+    private float lineWidth = 4.0f;
+    private int minPixelMove = 10; // Must move at least this many pixels per sample for a new segment to be recorded
 
 
     private Vector2[] linePoints;
@@ -36,7 +36,7 @@ public class Test : MonoBehaviour
     private void Update()
     {
         Vector3 previousPosition = Vector3.zero;
-#if UNITY_ANDROID
+#if UNITY_ANDROID||UNITY_IPHONE
         Vector3 touchPos = Input.touches[0].position;
         //按下
         if (Input.touchCount == 1 && Input.touches[0].phase == TouchPhase.Began)
@@ -54,8 +54,7 @@ public class Test : MonoBehaviour
         //{
 
         //}
-#elif UNITY_IPHONE
-      Debgug.Log("UNITY_IPHONE");
+
 #else
         Vector3 mousePos = Input.mousePosition;
         if (Input.GetMouseButtonDown(0))
@@ -96,26 +95,41 @@ public class Test : MonoBehaviour
         {
             cam.targetTexture = null;
         }
+        if (mTexture != null && mTexture.material != null)
+        {
+            mTexture.material.SetFloat("_ReverseRange", 1);
+
+        }
     }
 
     public Camera cam;
     //public Renderer render;
     public UITexture mTexture;
     Texture2D tex;
-    const int ScreenWidth = 1280;
-    const int ScreenHeight = 720;
+    int NeedWidth = 1280;
+    int NeedHeight = 720;
+
+    [Range(-1, 1)]
+    public float _Reverse;
     [ContextMenu("Catch")]
     public void Catch()
     {
-        Debug.Log(string.Format("宽：{0},高{1}", Screen.width, Screen.height));
+        //Debug.Log(string.Format("宽：{0},高{1}", Screen.width, Screen.height));
         cam = VectorLine.GetCamera();
         if (cam == null) return;
-        RenderTexture rT = new RenderTexture(ScreenWidth, ScreenHeight, 0);
+        if (mTexture != null)
+        {
+            NeedWidth = mTexture.width;
+            NeedHeight = mTexture.height;
+        }
+        RenderTexture rT = new RenderTexture(NeedWidth, NeedHeight, 0);
+        rT.format = RenderTextureFormat.ARGB32;
         RenderTexture.active = rT;
         cam.targetTexture = rT;
         cam.Render();
-        tex = new Texture2D(ScreenWidth, ScreenHeight, TextureFormat.RGB24, false);
-        tex.ReadPixels(new Rect(0, 0, ScreenWidth, ScreenHeight), 0, 0);
+
+        tex = new Texture2D(NeedWidth, NeedHeight, TextureFormat.RGB24, false);
+        tex.ReadPixels(new Rect(0, 0, NeedWidth, NeedHeight), 0, 0);
         tex.Apply();
 
 
@@ -133,10 +147,10 @@ public class Test : MonoBehaviour
 
     private void SetMaterialValue(Material mat)
     {
-        Debug.Log("sdfsdf");
-        if ( tex != null)
+        if (tex != null)
         {
             mat.SetTexture("_SubTex", tex);
+            mat.SetFloat("_ReverseRange", _Reverse);
         }
     }
 }

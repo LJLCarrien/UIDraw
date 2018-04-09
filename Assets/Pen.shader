@@ -8,8 +8,6 @@
 	}
 		SubShader
 	{
-		Tags{ "RenderType" = "Opaque" }
-		LOD 100
 
 		Pass
 	{
@@ -50,7 +48,7 @@
 	fixed4 frag(v2f i) : SV_Target
 	{
 
-		fixed4 col = _PenColor*tex2D(_MainTex, i.uv);
+		fixed4 col = _PenColor;
 	return col;
 	}
 		ENDCG
