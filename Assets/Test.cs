@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using Vectrosity;
+using DG.Tweening;
 
 public class Test : MonoBehaviour
 {
@@ -56,6 +57,7 @@ public class Test : MonoBehaviour
         //}
 
 #else
+
         Vector3 mousePos = Input.mousePosition;
         if (Input.GetMouseButtonDown(0))
         {
@@ -66,6 +68,10 @@ public class Test : MonoBehaviour
         else if (Input.GetMouseButton(0) && (mousePos - previousPosition).sqrMagnitude > sqrMinPixelMove && canDraw)
         {
             previousPosition = linePoints[++lineIndex] = mousePos;
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            Catch();
         }
 #endif
 
@@ -95,11 +101,15 @@ public class Test : MonoBehaviour
         {
             cam.targetTexture = null;
         }
-        if (mTexture != null && mTexture.material != null)
+        if (rT != null)
         {
-            mTexture.material.SetFloat("_ReverseRange", 1);
-
+            RenderTexture.ReleaseTemporary(rT);
         }
+        //if (mTexture != null && mTexture.material != null)
+        //{
+        //    mTexture.material.SetFloat("_ReverseRange", 1);
+
+        //}
     }
 
     public Camera cam;
@@ -109,12 +119,19 @@ public class Test : MonoBehaviour
     int NeedWidth = 1280;
     int NeedHeight = 720;
 
-    [Range(-1, 1)]
-    public float _Reverse;
+    //[Range(-1, 1)]
+    //public float _Reverse;
+
+    [Range(0, 1000)]
+    public float mSizeX;
+
+    [Range(0, 1000)]
+    public float mSizeY;
+
+    private RenderTexture rT;
     [ContextMenu("Catch")]
     public void Catch()
     {
-        //Debug.Log(string.Format("宽：{0},高{1}", Screen.width, Screen.height));
         cam = VectorLine.GetCamera();
         if (cam == null) return;
         if (mTexture != null)
@@ -122,27 +139,14 @@ public class Test : MonoBehaviour
             NeedWidth = mTexture.width;
             NeedHeight = mTexture.height;
         }
-        RenderTexture rT = new RenderTexture(NeedWidth, NeedHeight, 0);
-        rT.format = RenderTextureFormat.ARGB32;
+        rT = RenderTexture.GetTemporary(NeedWidth, NeedHeight, 0, RenderTextureFormat.ARGB32);
         RenderTexture.active = rT;
         cam.targetTexture = rT;
         cam.Render();
 
-        tex = new Texture2D(NeedWidth, NeedHeight, TextureFormat.RGB24, false);
+        tex = new Texture2D(NeedWidth, NeedHeight, TextureFormat.ARGB32, false);
         tex.ReadPixels(new Rect(0, 0, NeedWidth, NeedHeight), 0, 0);
         tex.Apply();
-
-
-
-
-        //if (mTexture != null)
-        //{
-        //    mTexture.material.SetTexture("_SubTex", tex);
-        //}
-
-        //RenderTexture.active = null;
-        //cam.targetTexture = null;
-
     }
 
     private void SetMaterialValue(Material mat)
@@ -150,7 +154,33 @@ public class Test : MonoBehaviour
         if (tex != null)
         {
             mat.SetTexture("_SubTex", tex);
-            mat.SetFloat("_ReverseRange", _Reverse);
+            Vector4 cr = new Vector4(0, 0, mSizeX, mSizeY);
+            Vector2 sharpness = new Vector2(1000.0f, 1000.0f);
+
+            mat.SetVector("_ClipRange0", new Vector4(-cr.x / cr.z, -cr.y / cr.w, 1f / cr.z, 1f / cr.w));
+            mat.SetVector("_ClipArgs0", new Vector4(sharpness.x, sharpness.y, Mathf.Sin(0), Mathf.Cos(0)));
+
+            //mat.SetFloat("_ReverseRange", _Reverse);
         }
     }
+    //public UIPanel mPanel;
+    //Tweener dt;
+
+    //[ContextMenu("aaa")]
+    //public void PlayForwardAni()
+    //{
+    //    int fromInt = (int)mPanel.baseClipRegion.z;
+    //    int w = (int)mPanel.baseClipRegion.w;
+    //    DOTween.To(() => fromInt, z => mPanel.baseClipRegion = new Vector4(0, 0, z, w), 1280, 3);
+
+    //}
+    //[ContextMenu("bbb")]
+    //public void PlayBackdAni()
+    //{
+    //    int fromInt = (int)mPanel.baseClipRegion.z;
+    //    int w = (int)mPanel.baseClipRegion.w;
+
+    //    DOTween.To(() => fromInt, z => mPanel.baseClipRegion = new Vector4(0, 0, z, w), 10, 3);
+
+    //}
 }
