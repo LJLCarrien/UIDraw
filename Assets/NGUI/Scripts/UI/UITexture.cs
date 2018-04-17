@@ -22,8 +22,8 @@ public class UITexture : UIBasicSprite
 	[HideInInspector][SerializeField] Shader mShader;
 	[HideInInspector][SerializeField] Vector4 mBorder = Vector4.zero;
 	[HideInInspector][SerializeField] bool mFixedAspect = false;
-
-	[System.NonSerialized] int mPMA = -1;
+    public Material dynamicMat;
+    [System.NonSerialized] int mPMA = -1;
 
 	/// <summary>
 	/// Texture used by the UITexture. You can set it directly, without the need to specify a material.
@@ -74,17 +74,23 @@ public class UITexture : UIBasicSprite
 				RemoveFromPanel();
 				mShader = null;
 				mMat = value;
-				mPMA = -1;
+                mPMA = -1;
 				MarkAsChanged();
 			}
 		}
 	}
 
-	/// <summary>
-	/// Shader used by the texture when creating a dynamic material (when the texture was specified, but the material was not).
-	/// </summary>
+    [ContextMenu("A")]
+    void A()
+    {
+        dynamicMat = drawCall.dynamicMaterial;
+    }
 
-	public override Shader shader
+    /// <summary>
+    /// Shader used by the texture when creating a dynamic material (when the texture was specified, but the material was not).
+    /// </summary>
+
+    public override Shader shader
 	{
 		get
 		{

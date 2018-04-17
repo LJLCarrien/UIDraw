@@ -128,6 +128,9 @@ public class Test : MonoBehaviour
     [Range(0, 1000)]
     public float mSizeY;
 
+    [Range(0, 360)]
+    public float angle;
+
     private RenderTexture rT;
     [ContextMenu("Catch")]
     public void Catch()
@@ -153,14 +156,29 @@ public class Test : MonoBehaviour
     {
         if (tex != null)
         {
+            angle *= -Mathf.Deg2Rad;
+
             mat.SetTexture("_SubTex", tex);
             Vector4 cr = new Vector4(0, 0, mSizeX, mSizeY);
             Vector2 sharpness = new Vector2(1000.0f, 1000.0f);
 
             mat.SetVector("_ClipRange0", new Vector4(-cr.x / cr.z, -cr.y / cr.w, 1f / cr.z, 1f / cr.w));
-            mat.SetVector("_ClipArgs0", new Vector4(sharpness.x, sharpness.y, Mathf.Sin(0), Mathf.Cos(0)));
-
+            mat.SetVector("_ClipArgs0", new Vector4(sharpness.x, sharpness.y, Mathf.Sin(angle), Mathf.Cos(angle)));
+          
             //mat.SetFloat("_ReverseRange", _Reverse);
+        }
+    }
+
+    void OnWillRenderObject()
+    {
+        if (mTexture != null)
+        {
+            var  mat = mTexture.material;
+            Vector4 cr = new Vector4(0, 0, mSizeX, mSizeY);
+            Vector2 sharpness = new Vector2(1000.0f, 1000.0f);
+
+            mat.SetVector("_ClipRange0", new Vector4(-cr.x / cr.z, -cr.y / cr.w, 1f / cr.z, 1f / cr.w));
+            mat.SetVector("_ClipArgs0", new Vector4(sharpness.x, sharpness.y, Mathf.Sin(angle), Mathf.Cos(angle)));
         }
     }
     //public UIPanel mPanel;

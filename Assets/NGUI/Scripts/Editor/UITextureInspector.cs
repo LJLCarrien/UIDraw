@@ -28,6 +28,7 @@ public class UITextureInspector : UIBasicSpriteEditor
 		if (target == null) return false;
 		SerializedProperty sp = NGUIEditorTools.DrawProperty("Texture", serializedObject, "mTexture");
 		NGUIEditorTools.DrawProperty("Material", serializedObject, "mMat");
+		NGUIEditorTools.DrawProperty("Material2", serializedObject, "dynamicMat");
 
 		if (sp != null) NGUISettings.texture = sp.objectReferenceValue as Texture;
 
