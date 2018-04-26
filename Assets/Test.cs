@@ -1,15 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 using Vectrosity;
-using DG.Tweening;
 
 public class Test : MonoBehaviour
 {
 
     public Material lineMaterial;
     private int maxPoints = 1000;
-    private float lineWidth = 4.0f;
-    private int minPixelMove = 10; // Must move at least this many pixels per sample for a new segment to be recorded
+    private float lineWidth = 7.0f;
+    private int minPixelMove = 5; // Must move at least this many pixels per sample for a new segment to be recorded
 
 
     private Vector2[] linePoints;
@@ -37,7 +36,7 @@ public class Test : MonoBehaviour
     private void Update()
     {
         Vector3 previousPosition = Vector3.zero;
-#if UNITY_ANDROID||UNITY_IPHONE
+#if UNITY_ANDROID
         Vector3 touchPos = Input.touches[0].position;
         //按下
         if (Input.touchCount == 1 && Input.touches[0].phase == TouchPhase.Began)
@@ -55,9 +54,9 @@ public class Test : MonoBehaviour
         //{
 
         //}
-
+#elif UNITY_IPHONE
+      Debgug.Log("UNITY_IPHONE");
 #else
-
         Vector3 mousePos = Input.mousePosition;
         if (Input.GetMouseButtonDown(0))
         {
@@ -101,104 +100,39 @@ public class Test : MonoBehaviour
         {
             cam.targetTexture = null;
         }
-        if (rT != null)
-        {
-            RenderTexture.ReleaseTemporary(rT);
-        }
-        //if (mTexture != null && mTexture.material != null)
-        //{
-        //    mTexture.material.SetFloat("_ReverseRange", 1);
-
-        //}
     }
 
     public Camera cam;
     //public Renderer render;
     public UITexture mTexture;
+    RenderTexture rT;
     Texture2D tex;
-    int NeedWidth = 1280;
-    int NeedHeight = 720;
-
-    //[Range(-1, 1)]
-    //public float _Reverse;
-
-    [Range(0, 1000)]
-    public float mSizeX;
-
-    [Range(0, 1000)]
-    public float mSizeY;
-
-    [Range(0, 360)]
-    public float angle;
-
-    private RenderTexture rT;
+    const int ScreenWidth = 1280;
+    const int ScreenHeight = 720;
     [ContextMenu("Catch")]
     public void Catch()
     {
+        Debug.Log(string.Format("宽：{0},高{1}", Screen.width, Screen.height));
         cam = VectorLine.GetCamera();
         if (cam == null) return;
-        if (mTexture != null)
-        {
-            NeedWidth = mTexture.width;
-            NeedHeight = mTexture.height;
-        }
-        rT = RenderTexture.GetTemporary(NeedWidth, NeedHeight, 0, RenderTextureFormat.ARGB32);
+        rT = new RenderTexture(mTexture.width, mTexture.height, 0);
+
+        RenderTexture currentRt;
+        currentRt = RenderTexture.active;
         RenderTexture.active = rT;
         cam.targetTexture = rT;
         cam.Render();
+        RenderTexture.active = currentRt;
 
-        tex = new Texture2D(NeedWidth, NeedHeight, TextureFormat.ARGB32, false);
-        tex.ReadPixels(new Rect(0, 0, NeedWidth, NeedHeight), 0, 0);
-        tex.Apply();
     }
 
     private void SetMaterialValue(Material mat)
     {
-        if (tex != null)
+        Debug.Log("sdfsdf");
+        if (rT != null)
         {
-            angle *= -Mathf.Deg2Rad;
-
-            mat.SetTexture("_SubTex", tex);
-            Vector4 cr = new Vector4(0, 0, mSizeX, mSizeY);
-            Vector2 sharpness = new Vector2(1000.0f, 1000.0f);
-
-            mat.SetVector("_ClipRange0", new Vector4(-cr.x / cr.z, -cr.y / cr.w, 1f / cr.z, 1f / cr.w));
-            mat.SetVector("_ClipArgs0", new Vector4(sharpness.x, sharpness.y, Mathf.Sin(angle), Mathf.Cos(angle)));
-          
-            //mat.SetFloat("_ReverseRange", _Reverse);
+            mat.GetTexture("_SubTex");
+            mat.SetTexture("_SubTex", rT);
         }
     }
-
-    void OnWillRenderObject()
-    {
-        if (mTexture != null)
-        {
-            var  mat = mTexture.material;
-            Vector4 cr = new Vector4(0, 0, mSizeX, mSizeY);
-            Vector2 sharpness = new Vector2(1000.0f, 1000.0f);
-
-            mat.SetVector("_ClipRange0", new Vector4(-cr.x / cr.z, -cr.y / cr.w, 1f / cr.z, 1f / cr.w));
-            mat.SetVector("_ClipArgs0", new Vector4(sharpness.x, sharpness.y, Mathf.Sin(angle), Mathf.Cos(angle)));
-        }
-    }
-    //public UIPanel mPanel;
-    //Tweener dt;
-
-    //[ContextMenu("aaa")]
-    //public void PlayForwardAni()
-    //{
-    //    int fromInt = (int)mPanel.baseClipRegion.z;
-    //    int w = (int)mPanel.baseClipRegion.w;
-    //    DOTween.To(() => fromInt, z => mPanel.baseClipRegion = new Vector4(0, 0, z, w), 1280, 3);
-
-    //}
-    //[ContextMenu("bbb")]
-    //public void PlayBackdAni()
-    //{
-    //    int fromInt = (int)mPanel.baseClipRegion.z;
-    //    int w = (int)mPanel.baseClipRegion.w;
-
-    //    DOTween.To(() => fromInt, z => mPanel.baseClipRegion = new Vector4(0, 0, z, w), 10, 3);
-
-    //}
 }

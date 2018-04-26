@@ -610,7 +610,6 @@ public class UIDrawCall : MonoBehaviour
 
 	void OnWillRenderObject ()
 	{
-	    return;
 		UpdateMaterials();
 
         if (onRender != null) onRender(mDynamicMat ?? mMaterial);
