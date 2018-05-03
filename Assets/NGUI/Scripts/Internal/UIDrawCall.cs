@@ -63,8 +63,8 @@ public class UIDrawCall : MonoBehaviour
 	Transform		mTrans;			// Cached transform
 	Mesh			mMesh;			// First generated mesh
 	MeshFilter		mFilter;		// Mesh filter for this draw call
-	MeshRenderer	mRenderer;      // Mesh renderer for this screen
-    Material		mDynamicMat;	// Instantiated material
+	MeshRenderer	mRenderer;		// Mesh renderer for this screen
+	Material		mDynamicMat;	// Instantiated material
 	int[]			mIndices;		// Cached indices
 
 	bool mRebuildMat = true;
@@ -612,7 +612,7 @@ public class UIDrawCall : MonoBehaviour
 	{
 		UpdateMaterials();
 
-        if (onRender != null) onRender(mDynamicMat ?? mMaterial);
+		if (onRender != null) onRender(mDynamicMat ?? mMaterial);
 		if (mDynamicMat == null || mClipCount == 0) return;
 
 		if (mTextureClip)

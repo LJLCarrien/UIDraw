@@ -7,8 +7,8 @@ public class Test : MonoBehaviour
 
     public Material lineMaterial;
     private int maxPoints = 1000;
-    private float lineWidth = 7.0f;
-    private int minPixelMove = 5; // Must move at least this many pixels per sample for a new segment to be recorded
+    private float lineWidth = 4.0f;
+    private int minPixelMove = 10; // Must move at least this many pixels per sample for a new segment to be recorded
 
 
     private Vector2[] linePoints;
@@ -31,12 +31,17 @@ public class Test : MonoBehaviour
 
         if (mTexture != null)
             mTexture.onRender += SetMaterialValue;
+
+        cam = VectorLine.SetCamera();
+        cam.depth = Camera.main.depth + 1;
     }
 
     private void Update()
     {
         Vector3 previousPosition = Vector3.zero;
-#if UNITY_ANDROID
+
+#if UNITY_ANDROID || UNITY_IPHONE
+        if(Input.touches.Length==0)return;
         Vector3 touchPos = Input.touches[0].position;
         //按下
         if (Input.touchCount == 1 && Input.touches[0].phase == TouchPhase.Began)
@@ -50,12 +55,11 @@ public class Test : MonoBehaviour
             previousPosition = linePoints[++lineIndex] = touchPos;
         }
         //松开
-        //else if (Input.touches[0].phase == TouchPhase.Ended)
-        //{
+        else if (Input.touches[0].phase == TouchPhase.Ended)
+        {
+            Catch();
+        }
 
-        //}
-#elif UNITY_IPHONE
-      Debgug.Log("UNITY_IPHONE");
 #else
         Vector3 mousePos = Input.mousePosition;
         if (Input.GetMouseButtonDown(0))
@@ -94,45 +98,83 @@ public class Test : MonoBehaviour
         line.Draw();
         lineIndex = 0;
         canDraw = true;
-        Catch();
-        cam = VectorLine.GetCamera();
-        if (cam.targetTexture != null)
-        {
-            cam.targetTexture = null;
-        }
+        cam.targetTexture = null;
+
+        cam.clearFlags = CameraClearFlags.Depth;
     }
 
     public Camera cam;
     //public Renderer render;
     public UITexture mTexture;
+    //Texture2D tex;
+    int NeedWidth = 1280;
+    int NeedHeight = 720;
     RenderTexture rT;
-    Texture2D tex;
-    const int ScreenWidth = 1280;
-    const int ScreenHeight = 720;
+    [Range(-1, 1)]
+    public float _Reverse;
     [ContextMenu("Catch")]
     public void Catch()
     {
-        Debug.Log(string.Format("宽：{0},高{1}", Screen.width, Screen.height));
+        //Debug.Log(string.Format("宽：{0},高{1}", Screen.width, Screen.height));
         cam = VectorLine.GetCamera();
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = new Color(0,0,0,0);
         if (cam == null) return;
-        rT = new RenderTexture(mTexture.width, mTexture.height, 0);
+        if (mTexture != null)
+        {
+            NeedWidth = mTexture.width;
+            NeedHeight = mTexture.height;
+        }
+        rT = new RenderTexture(NeedWidth, NeedHeight, 0, RenderTextureFormat.ARGB32);
 
-        RenderTexture currentRt;
-        currentRt = RenderTexture.active;
-        RenderTexture.active = rT;
+        //RenderTexture currentRt = RenderTexture.active;
+        //RenderTexture.active = rT;
+        //cam.targetTexture = rT;
+        //cam.Render();
+
         cam.targetTexture = rT;
         cam.Render();
+        RenderTexture currentRt = RenderTexture.active;
+        RenderTexture.active = rT;
         RenderTexture.active = currentRt;
+       
+
+        //tex = new Texture2D(NeedWidth, NeedHeight, TextureFormat.RGB24, false);
+        //tex.ReadPixels(new Rect(0, 0, NeedWidth, NeedHeight), 0, 0);
+        //tex.Apply();
+
 
     }
+    public UIPanel topPanel;
+    public UIPanel backPanel;
 
+    private void OnGUI()
+    {
+        if (GUI.Button(new Rect(100, 100, 100, 50), "恢复"))
+        {
+            topPanel.alpha = 1;
+            backPanel.alpha = 1;
+
+        }
+
+        if (GUI.RepeatButton(new Rect(100, 200, 100, 50), "渐变消失"))
+        {
+            if (topPanel.alpha > 0)
+            {
+                topPanel.alpha-=Time.deltaTime;
+                backPanel.alpha -= Time.deltaTime;
+                Debug.LogError(topPanel.alpha);
+            }
+            
+
+        }
+    }
     private void SetMaterialValue(Material mat)
     {
-        Debug.Log("sdfsdf");
         if (rT != null)
         {
-            mat.GetTexture("_SubTex");
             mat.SetTexture("_SubTex", rT);
+            mat.SetFloat("_ReverseRange", _Reverse);
         }
     }
 }
